@@ -7,13 +7,9 @@ const API = axios.create({
 API.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('libhub_token');
-        const user = JSON.parse(localStorage.getItem('libhub_user') || '{}');
-        const authToken = token || user.token;
-
-        if (authToken) {
-            config.headers.Authorization = `Bearer ${authToken}`;
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
-
         return config;
     },
     (error) => {

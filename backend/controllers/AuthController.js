@@ -95,7 +95,6 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUserById = async (req, res) => {
     try {
-        // 如果更新内容包含密码，需要重新哈希
         if (req.body.password) {
             const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
             req.body.password = await bcrypt.hash(req.body.password, saltRounds);

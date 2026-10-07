@@ -10,9 +10,17 @@ const MemberProfile = () => {
         try {
             const res = await API.get('/borrows');
             const userId = user?.id || user?._id;
-            setBorrows(res.data.filter(item => item.userId?._id === userId));
+            
+            // 双重安全防护：若后端已按用户过滤则直接使用，若后端返回列表则前端做兜底过滤
+            if (Array.isArray(res.data)) {
+                const userLogs = res.data.filter(item => {
+                    const idInItem = item.userId?._id || item.userId;
+                    return !idInItem || idInItem === userId;
+                });
+                setBorrows(userLogs);
+            }
         } catch (err) {
-            console.error(err);
+            console.error('Failed to fetch borrow logs:', err);
         }
     };
 
@@ -30,7 +38,7 @@ const MemberProfile = () => {
         }
     };
 
-    if (!user) return <div>Loading...</div>;
+    if (!user) return <div className="p-4 text-center">Loading...</div>;
 
     return (
         <div>
@@ -51,8 +59,8 @@ const MemberProfile = () => {
                     {borrows.map(log => (
                         <tr key={log._id}>
                             <td>{log.bookId?.title || 'Unknown Book'}</td>
-                            <td>{new Date(log.borrowDate).toLocaleDateString()}</td>
-                            <td>{new Date(log.dueDate).toLocaleDateString()}</td>
+                            <td>{log.borrowDate ? new Date(log.borrowDate).toLocaleDateString() : '-'}</td>
+                            <td>{log.dueDate ? new Date(log.dueDate).toLocaleDateString() : '-'}</td>
                             <td>
                                 <span className={`badge ${log.status === 'Returned' ? 'bg-secondary' : 'bg-success'}`}>
                                     {log.status === 'Returned' ? 'Returned' : 'Borrowed'}
@@ -60,11 +68,18 @@ const MemberProfile = () => {
                             </td>
                             <td>
                                 {log.status === 'Borrowed' && (
-                                    <button onClick={() => handleReturn(log._id)} className="btn btn-outline-danger btn-sm">Return Book</button>
+                                    <button onClick={() => handleReturn(log._id)} className="btn btn-outline-danger btn-sm">
+                                        Return Book
+                                    </button>
                                 )}
                             </td>
                         </tr>
                     ))}
+                    {borrows.length === 0 && (
+                        <tr>
+                            <td colSpan="5" className="text-center text-muted py-4">No borrowing history found.</td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
         </div>

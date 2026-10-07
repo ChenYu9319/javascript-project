@@ -21,7 +21,11 @@ const BookSearch = () => {
     };
 
     useEffect(() => {
-        API.get('/books/category').then(res => setCategories(res.data)).catch(() => {});
+        // 修正：将 /books/category 改为 /books/categories
+        API.get('/books/categories')
+            .then(res => setCategories(res.data))
+            .catch(() => {});
+            
         fetchBooks();
     }, []);
 
@@ -35,8 +39,13 @@ const BookSearch = () => {
             <h2 className="mb-4">Book Search</h2>
             <form onSubmit={handleSearch} className="row g-3 mb-4 bg-light p-3 rounded shadow-sm">
                 <div className="col-md-4">
-                    <input type="text" className="form-control" placeholder="Search by title or author..."
-                        value={keyword} onChange={e => setKeyword(e.target.value)} />
+                    <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Search by title or author..."
+                        value={keyword} 
+                        onChange={e => setKeyword(e.target.value)} 
+                    />
                 </div>
                 <div className="col-md-3">
                     <select className="form-select" value={category} onChange={e => setCategory(e.target.value)}>
@@ -46,8 +55,13 @@ const BookSearch = () => {
                 </div>
                 <div className="col-md-3 d-flex align-items-center">
                     <div className="form-check">
-                        <input className="form-check-input" type="checkbox" id="avail"
-                            checked={availableOnly} onChange={e => setAvailableOnly(e.target.checked)} />
+                        <input 
+                            className="form-check-input" 
+                            type="checkbox" 
+                            id="avail"
+                            checked={availableOnly} 
+                            onChange={e => setAvailableOnly(e.target.checked)} 
+                        />
                         <label className="form-check-label" htmlFor="avail">Available Stock Only</label>
                     </div>
                 </div>
