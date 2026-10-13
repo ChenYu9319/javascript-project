@@ -12,46 +12,62 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+        <nav 
+            className="navbar navbar-expand-lg navbar-dark shadow-sm mb-4 sticky-top"
+            style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}
+        >
             <div className="container">
-                <Link className="navbar-brand fw-bold" to="/">📚 LibHub Central</Link>
-                <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                {/* 点击 Logo 直接返回首页 */}
+                <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2 text-white" to="/">
+                    <i className="fa-solid fa-book-bookmark text-primary"></i> LibHub Central
+                </Link>
+                <button className="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span className="navbar-toggler-icon"></span>
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
-                    <ul className="navbar-nav me-auto">
+                    <ul className="navbar-nav me-auto ms-lg-4">
+                        {/* 已移除 Home 链接 */}
                         <li className="nav-item">
-                            <Link className="nav-link" to="/">Home</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/search">Book Search</Link>
+                            <Link className="nav-link px-3 text-white-50" to="/search">
+                                <i className="fa-solid fa-magnifying-glass me-1"></i> Catalog
+                            </Link>
                         </li>
                         {user && user.role === 'member' && (
                             <li className="nav-item">
-                                <Link className="nav-link" to="/profile">My Borrowing</Link>
+                                <Link className="nav-link px-3 text-white-50" to="/profile">
+                                    <i className="fa-solid fa-user-check me-1"></i> My Borrows
+                                </Link>
                             </li>
                         )}
                         {user && user.role === 'admin' && (
                             <>
                                 <li className="nav-item">
-                                    <Link className="nav-link" to="/admin/dashboard">Dashboard</Link>
+                                    <Link className="nav-link px-3 text-white-50" to="/admin/dashboard">
+                                        <i className="fa-solid fa-chart-pie me-1"></i> Dashboard
+                                    </Link>
                                 </li>
                                 <li className="nav-item">
-                                    <Link className="nav-link" to="/admin/inventory">Inventory</Link>
+                                    <Link className="nav-link px-3 text-white-50" to="/admin/inventory">
+                                        <i className="fa-solid fa-boxes-stacked me-1"></i> Inventory
+                                    </Link>
                                 </li>
                             </>
                         )}
                     </ul>
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex align-items-center gap-3">
                         {user ? (
                             <>
-                                <span className="text-light me-2">Hello, {user.username} ({user.role})</span>
-                                <button onClick={handleLogout} className="btn btn-outline-light btn-sm">Logout</button>
+                                <span className="text-white small">
+                                    <i className="fa-solid fa-circle-user me-1 text-info"></i> {user.username}
+                                </span>
+                                <button onClick={handleLogout} className="btn btn-outline-light btn-sm rounded-pill px-3">
+                                    <i className="fa-solid fa-right-from-bracket me-1"></i> Logout
+                                </button>
                             </>
                         ) : (
                             <>
-                                <Link to="/login" className="btn btn-light btn-sm me-2">Login</Link>
-                                <Link to="/register" className="btn btn-outline-light btn-sm">Register</Link>
+                                <Link to="/login" className="btn btn-light btn-sm rounded-pill px-3 fw-medium">Login</Link>
+                                <Link to="/register" className="btn btn-primary btn-sm rounded-pill px-3">Register</Link>
                             </>
                         )}
                     </div>

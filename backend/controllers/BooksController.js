@@ -6,7 +6,7 @@ exports.addNewBook = async (req, res) => {
         await newBook.save();
         res.json(newBook);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: err.message || "Server Error" });
     }
 };
 
@@ -27,8 +27,8 @@ exports.getAllBooks = async (req, res) => {
     try {
         const books = await Book.find(filter);
         res.json(books);
-    } catch (error) {
-        res.status(500).json(error);
+    } catch (err) {
+        res.status(500).json({ message: err.message || "Server Error" });
     }
 };
 
@@ -37,7 +37,7 @@ exports.getBookById = async (req, res) => {
         const book = await Book.findById(req.params.id);
         res.json(book);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: err.message || "Server Error" });
     }
 };
 
@@ -46,7 +46,7 @@ exports.updateBookById = async (req, res) => {
         const updatedBook = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(updatedBook);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: err.message || "Server Error" });
     }
 };
 
@@ -55,7 +55,7 @@ exports.deleteBookById = async (req, res) => {
         await Book.findByIdAndDelete(req.params.id);
         res.sendStatus(204);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: err.message || "Server Error" });
     }
 };
 
@@ -64,6 +64,6 @@ exports.getUniqueCategories = async (req, res) => {
         const categories = await Book.find().distinct("category");
         res.json(categories);
     } catch (error) {
-        res.status(500).json(error);
+       res.status(500).json({ message: err.message || "Server Error" });
     }
 };
