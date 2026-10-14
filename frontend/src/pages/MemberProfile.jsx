@@ -64,7 +64,7 @@ const MemberProfile = () => {
 
     return (
         <div className="container py-2">
-            {/* 1. 顶部 Header 统计卡片 */}
+            {/* header */}
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                 <div>
                     <h2 className="fw-bold text-white mb-1 d-flex align-items-center gap-2">
@@ -85,7 +85,7 @@ const MemberProfile = () => {
                 </div>
             </div>
 
-            {/* 2. 状态切换选项卡 (Tabs Filter) */}
+            {/* Switch Tabs Filter */}
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="btn-group p-1 rounded-pill" style={{ background: "rgba(15, 23, 42, 0.6)", border: "1px solid rgba(255, 255, 255, 0.15)" }}>
                     <button 
@@ -118,7 +118,7 @@ const MemberProfile = () => {
                 </button>
             </div>
 
-            {/* 3. 借阅表格 */}
+            {/* borrow table */}
             <div className="card card-dark-glass rounded-4 overflow-hidden">
                 {loading ? (
                     <div className="text-center py-5">

@@ -7,7 +7,7 @@ const AdminDashboard = () => {
         totalBooks: 0,
         borrowedBooks: 0,
         availableBooks: 0,
-        recentBorrows: []
+        allBorrows: []
     });
     const [loading, setLoading] = useState(true);
 
@@ -23,13 +23,16 @@ const AdminDashboard = () => {
 
             const total = books.reduce((acc, book) => acc + (book.totalStock || 0), 0);
             const available = books.reduce((acc, book) => acc + (book.availableStock || 0), 0);
-            const activeBorrows = borrows.filter(b => b.status === 'Borrowed');
+            
+            // 计算当前真正活跃的借阅数（用于统计卡片）
+            const activeBorrowsCount = borrows.filter(b => b.status === 'Borrowed').length;
 
             setStats({
                 totalBooks: total,
                 availableBooks: available,
-                borrowedBooks: activeBorrows.length,
-                recentBorrows: borrows.slice(0, 5)
+                borrowedBooks: activeBorrowsCount,
+                // 保存全量借阅/归还流水，供表格展示
+                allBorrows: borrows
             });
         } catch (err) {
             console.error('Failed to load dashboard statistics:', err);
@@ -64,16 +67,16 @@ const AdminDashboard = () => {
                         <i className="fa-solid fa-chart-pie me-2" style={{ color: "#38bdf8" }}></i>
                         Admin Overview
                     </h2>
-                    <p className="text-white-50 small mb-0">System performance, statistics and recent activities.</p>
+                    <p className="text-white-50 small mb-0">System performance, statistics and library activity logs.</p>
                 </div>
                 <Link to="/admin/inventory" className="btn btn-primary-gradient rounded-pill px-4 shadow-sm">
                     <i className="fa-solid fa-boxes-stacked me-2"></i>Manage Inventory
                 </Link>
             </div>
 
-            {/* 1. 核心指标卡片区域 (4 大 Stat Cards) */}
+            {/* card 统计看板 */}
             <div className="row g-3 mb-4">
-                {/* 卡片 1: 总藏书量 */}
+                {/* card 1: all books */}
                 <div className="col-md-3">
                     <div className="card card-dark-glass rounded-4 p-3 h-100">
                         <div className="d-flex align-items-center justify-content-between">
@@ -88,7 +91,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* 卡片 2: 在库可用数量 */}
+                {/* card 2: books available for borrowing */}
                 <div className="col-md-3">
                     <div className="card card-dark-glass rounded-4 p-3 h-100">
                         <div className="d-flex align-items-center justify-content-between">
@@ -103,7 +106,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* 卡片 3: 当前借出数量 */}
+                {/* card 3: number of books currently on loan */}
                 <div className="col-md-3">
                     <div className="card card-dark-glass rounded-4 p-3 h-100">
                         <div className="d-flex align-items-center justify-content-between">
@@ -118,7 +121,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* 卡片 4: 借出利用率 */}
+                {/* card 4: utilization rate */}
                 <div className="col-md-3">
                     <div className="card card-dark-glass rounded-4 p-3 h-100">
                         <div className="d-flex align-items-center justify-content-between">
@@ -134,7 +137,7 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            {/* 2. 图书利用率与快捷工具条 */}
+            {/* 2. Book Utilization Rate and Quick Access Toolbar */}
             <div className="row g-4 mb-4">
                 <div className="col-md-8">
                     <div className="card card-dark-glass rounded-4 p-4 h-100">
@@ -177,13 +180,15 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            {/* 3. 最近借阅动态表格 */}
+            {/* 3. All Borrow & Return Activity Table (展示借书与还书的全部历史流水) */}
             <div className="card card-dark-glass rounded-4 overflow-hidden">
                 <div className="card-header bg-transparent border-bottom border-white border-opacity-10 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
                     <h5 className="fw-bold text-white mb-0">
-                        <i className="fa-solid fa-clock-rotate-left text-info me-2"></i>Recent Borrowing Activity
+                        <i className="fa-solid fa-clock-rotate-left text-info me-2"></i>Borrow & Return Activity Logs
                     </h5>
-                    <span className="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">Latest 5 Records</span>
+                    <span className="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">
+                        Total Logs: {stats.allBorrows.length}
+                    </span>
                 </div>
                 <div className="table-responsive">
                     <table className="table table-dark-glass align-middle mb-0">
@@ -192,31 +197,47 @@ const AdminDashboard = () => {
                                 <th className="ps-4">Book Title</th>
                                 <th>Borrower</th>
                                 <th>Borrow Date</th>
-                                <th>Due Date</th>
+                                <th>Due / Return Date</th>
                                 <th className="text-end pe-4">Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {stats.recentBorrows.map(log => (
-                                <tr key={log._id}>
-                                    <td className="ps-4 fw-medium text-white">{log.bookId?.title || 'Unknown Book'}</td>
-                                    <td className="text-white-50">
-                                        <i className="fa-solid fa-user me-1 text-info opacity-75"></i>
-                                        {log.userId?.username || 'Member'}
-                                    </td>
-                                    <td className="text-white-50 small">{log.borrowDate ? new Date(log.borrowDate).toLocaleDateString() : '-'}</td>
-                                    <td className="text-white-50 small">{log.dueDate ? new Date(log.dueDate).toLocaleDateString() : '-'}</td>
-                                    <td className="text-end pe-4">
-                                        <span className={`badge rounded-pill ${log.status === 'Returned' ? 'bg-secondary bg-opacity-25 text-white-50' : 'bg-success bg-opacity-25 text-success border border-success border-opacity-25'}`}>
-                                            {log.status === 'Returned' ? 'Returned' : 'Active Borrow'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                            {stats.recentBorrows.length === 0 && (
+                            {stats.allBorrows.map(log => {
+                                const isReturned = log.status === 'Returned';
+                                return (
+                                    <tr key={log._id}>
+                                        <td className="ps-4 fw-medium text-white">{log.bookId?.title || 'Unknown Book'}</td>
+                                        <td className="text-white-50">
+                                            <i className="fa-solid fa-user me-1 text-info opacity-75"></i>
+                                            {log.userId?.username || 'Member'}
+                                        </td>
+                                        <td className="text-white-50 small">
+                                            {log.borrowDate ? new Date(log.borrowDate).toLocaleDateString() : '-'}
+                                        </td>
+                                        <td className="text-white-50 small">
+                                            {isReturned ? (
+                                                <span className="text-success">
+                                                    <i className="fa-solid fa-check me-1"></i>
+                                                    Returned: {log.returnDate ? new Date(log.returnDate).toLocaleDateString() : 'N/A'}
+                                                </span>
+                                            ) : (
+                                                <span className="text-warning">
+                                                    Due: {log.dueDate ? new Date(log.dueDate).toLocaleDateString() : '-'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="text-end pe-4">
+                                            <span className={`badge rounded-pill ${isReturned ? 'bg-secondary bg-opacity-25 text-white-50 border border-secondary border-opacity-25' : 'bg-success bg-opacity-25 text-success border border-success border-opacity-25'}`}>
+                                                {isReturned ? 'Returned' : 'Active Borrow'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            {stats.allBorrows.length === 0 && (
                                 <tr>
                                     <td colSpan="5" className="text-center py-4 text-white-50">
-                                        No recent borrowing records found.
+                                        No borrowing or return logs found.
                                     </td>
                                 </tr>
                             )}

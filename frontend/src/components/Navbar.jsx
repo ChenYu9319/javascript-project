@@ -17,7 +17,7 @@ const Navbar = () => {
             style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}
         >
             <div className="container">
-                {/* 点击 Logo 直接返回首页 */}
+                {/* 点击 Logo 直接返回home */}
                 <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2 text-white" to="/">
                     <i className="fa-solid fa-book-bookmark text-primary"></i> LibHub Central
                 </Link>
@@ -26,12 +26,12 @@ const Navbar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav me-auto ms-lg-4">
-                        {/* 已移除 Home 链接 */}
                         <li className="nav-item">
                             <Link className="nav-link px-3 text-white-50" to="/search">
                                 <i className="fa-solid fa-magnifying-glass me-1"></i> Catalog
                             </Link>
                         </li>
+                        {/* 只有member能看到，没有login的和admin不能看到 */}
                         {user && user.role === 'member' && (
                             <li className="nav-item">
                                 <Link className="nav-link px-3 text-white-50" to="/profile">
@@ -39,6 +39,7 @@ const Navbar = () => {
                                 </Link>
                             </li>
                         )}
+                        {/* 只有admin有和看到 */}
                         {user && user.role === 'admin' && (
                             <>
                                 <li className="nav-item">

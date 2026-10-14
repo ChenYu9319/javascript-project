@@ -98,7 +98,7 @@ const BookSearch = () => {
                         </div>
                     </div>
 
-                    {/* 可用库存开关 */}
+                    {/* 可用库存button */}
                     <div className="col-lg-3 col-md-6 d-flex align-items-center">
                         <div className="form-check form-switch ms-2">
                             <input 

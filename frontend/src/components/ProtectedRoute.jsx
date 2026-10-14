@@ -6,7 +6,7 @@ const ProtectedRoute = ({ allowedRole, children }) => {
     const { user, token, loading } = useContext(AuthContext);
     const storedToken = token || localStorage.getItem('libhub_token');
 
-    // 1. 如果 AuthContext 正在初始化本地存储的数据，先等待不直接跳转
+    // 1. 如果 AuthContext 正在initializing data从localstroge，先等不直接出现数据
     if (loading) {
         return (
             <div className="d-flex justify-content-center align-items-center my-5">
@@ -17,12 +17,12 @@ const ProtectedRoute = ({ allowedRole, children }) => {
         );
     }
 
-    // 2. 检查登录状态
+    // check 有没有 Login
     if (!user || !storedToken) {
         return <Navigate to="/login" replace />;
     }
 
-    // 3. 检查角色权限
+    // 3. check user role
     if (allowedRole && user.role !== allowedRole) {
         return <Navigate to="/" replace />;
     }

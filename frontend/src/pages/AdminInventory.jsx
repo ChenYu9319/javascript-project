@@ -122,7 +122,6 @@ const AdminInventory = () => {
 
     return (
         <div className="container py-2">
-            {/* 页头标题 */}
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 className="fw-bold text-white mb-1">
@@ -136,7 +135,7 @@ const AdminInventory = () => {
                 </button>
             </div>
 
-            {/* 新增图书折叠表单 */}
+            {/* 图书折叠表单 Book-style folding leaflet */}
             <div className="collapse mb-4" id="addBookCollapse">
                 <div className="card card-dark-glass card-body rounded-4 p-4">
                     <h5 className="fw-bold mb-3 text-info">
@@ -164,7 +163,7 @@ const AdminInventory = () => {
                             <input type="text" name="shelfLocation" className="form-control" value={formData.shelfLocation} onChange={handleAddChange} required />
                         </div>
                         
-                        {/* Total Stock (设为 readOnly，只能通过按钮加减) */}
+                        {/* Total Stock (设为 readOnly，用+/-来调整数量) */}
                         <div className="col-md-3">
                             <label className="form-label small fw-medium text-white-50">Total Stock</label>
                             <div className="input-group">
@@ -174,7 +173,7 @@ const AdminInventory = () => {
                             </div>
                         </div>
 
-                        {/* Available Stock (设为 readOnly，只能通过按钮加减) */}
+                        {/* Available Stock (设为 readOnly，用+/-来调整数量) */}
                         <div className="col-md-3">
                             <label className="form-label small fw-medium text-white-50">Available Stock</label>
                             <div className="input-group">
@@ -193,7 +192,7 @@ const AdminInventory = () => {
                 </div>
             </div>
 
-            {/* 库存表格卡片 */}
+            {/* Inventory Table Card */}
             <div className="card card-dark-glass rounded-4 overflow-hidden">
                 <div className="table-responsive">
                     <table className="table table-dark-glass align-middle mb-0">
@@ -258,7 +257,7 @@ const AdminInventory = () => {
                 </div>
             </div>
 
-            {/* 编辑弹窗 (Edit Modal) */}
+            {/* (Edit Modal) */}
             {isEditModalOpen && editFormData && (
                 <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(6px)" }}>
                     <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -294,7 +293,7 @@ const AdminInventory = () => {
                                             <input type="text" name="shelfLocation" className="form-control" value={editFormData.shelfLocation} onChange={handleEditChange} required />
                                         </div>
                                         
-                                        {/* Total Stock (设为 readOnly) */}
+                                        {/* Total Stock (设为 readOnly和用+/-来调整数量) */}
                                         <div className="col-md-4">
                                             <label className="form-label small fw-medium text-white-50">Total Stock</label>
                                             <div className="input-group">
@@ -304,7 +303,7 @@ const AdminInventory = () => {
                                             </div>
                                         </div>
 
-                                        {/* Available Stock (设为 readOnly) */}
+                                        {/* Available Stock (设为 readOnly和用+/-来调整数量) */}
                                         <div className="col-md-4">
                                             <label className="form-label small fw-medium text-white-50">Available Stock</label>
                                             <div className="input-group">

@@ -4,7 +4,7 @@ const { verifyToken, isAdmin } = require("../middleware/auth");
 
 const route = express.Router();
 
-// 公开接口
+// login and register rotes
 route.post("/register", AuthController.register);
 route.post("/login", AuthController.login);
 
@@ -12,6 +12,6 @@ route.post("/login", AuthController.login);
 route.get("/users", verifyToken, isAdmin, AuthController.getAllUsers);
 route.get("/users/:id", verifyToken, AuthController.getUserById);
 route.put("/users/:id", verifyToken, AuthController.updateUserById);
-route.delete("/users/:id", verifyToken, isAdmin, AuthController.deleteUserById);
+route.delete("/users/:id", verifyToken, isAdmin, AuthController.deleteUserById); // 这个是在postman里的，当我是admin是，我能delete user 除了我自己
 
 module.exports = route;

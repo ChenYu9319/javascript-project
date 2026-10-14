@@ -7,7 +7,7 @@ const Home = () => {
 
     return (
         <div className="container py-3" style={{ background: "transparent" }}>
-            {/* 1. 星空主题 Hero 英雄区 */}
+            {/* 星空主题 */}
             <div className="card card-dark-glass border-0 rounded-4 shadow-lg text-white overflow-hidden mb-5 p-4 p-md-5">
                 <div className="row align-items-center">
                     <div className="col-lg-7">
@@ -43,7 +43,7 @@ const Home = () => {
                         </div>
                     </div>
 
-                    {/* 右侧星球 SVG 元素 */}
+                    {/* 右边星球 */}
                     <div className="col-lg-5 d-none d-lg-flex justify-content-center align-items-center">
                         <div style={{ opacity: 0.85, filter: "drop-shadow(0 0 25px rgba(56, 189, 248, 0.3))" }}>
                             <svg width="220" height="220" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
@@ -58,7 +58,7 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* 2. 核心功能卡片网格 */}
+            {/* card */}
             <div className="row g-4 mb-5">
                 <div className="col-md-4">
                     <div className="card h-100 card-dark-glass shadow-sm rounded-4 p-4 text-center card-hover">
@@ -89,7 +89,7 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* 3. 底部快捷入口 */}
+            {/* user login shortcut */}
             <div className="card card-dark-glass rounded-4 p-4 p-md-5 mb-4 shadow-sm card-hover">
                 <div className="row align-items-center">
                     <div className="col-md-8">

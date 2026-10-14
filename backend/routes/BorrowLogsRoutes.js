@@ -4,14 +4,13 @@ const { verifyToken, isAdmin } = require("../middleware/auth");
 
 const route = express.Router();
 
-// 借书接口 (只需登录)
 route.post("/", verifyToken, BorrowLogsController.createNewBorrow);
 
-// 获取借阅记录 & 还书 (只需登录)
+// retrieve borrowing and return records. ( only login but admin cannot borrowing books )
 route.get("/", verifyToken, BorrowLogsController.getAllBorrowLogs);
 route.put("/:id/return", verifyToken, BorrowLogsController.returnBook);
 
-// 删除记录 (需要 Admin 权限)
+// delete record ( 要用 Admin )
 route.delete("/:id", verifyToken, isAdmin, BorrowLogsController.deleteBorrowLogById);
 
 module.exports = route;

@@ -26,7 +26,7 @@ const BookDetail = () => {
     const handleBorrow = async () => {
         if (!user) return navigate('/login');
         
-        // 前端双重保险：如果是管理员直接提示并拦截
+        // 保险Frontend double-layer safeguard, 如果user是admin，直接给directly display a prompt and block the action.
         if (user.role === 'admin') {
             alert('Administrators are not permitted to borrow books.');
             return;
@@ -85,10 +85,9 @@ const BookDetail = () => {
                 <i className="fa-solid fa-arrow-left me-2"></i>Back
             </button>
 
-            {/* 主内容卡片 */}
             <div className="card card-dark-glass rounded-4 p-4">
                 <div className="row g-4 align-items-center">
-                    {/* 左侧图书大图章 */}
+                    {/* books picture在左边的 */}
                     <div className="col-lg-4 text-center border-end-lg">
                         <div className="rounded-4 bg-primary-subtle text-primary p-5 d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '180px', height: '220px' }}>
                             <i className="fa-solid fa-book-open-reader fa-5x"></i>
@@ -100,14 +99,13 @@ const BookDetail = () => {
                         </div>
                     </div>
 
-                    {/* 右侧详细属性 */}
                     <div className="col-lg-8">
                         <h2 className="fw-bold text-white mb-2">{book.title}</h2>
                         <p className="text-white-50 fs-5 mb-4">
                             <i className="fa-solid fa-user-pen me-2 text-info"></i>Author: <span className="text-white fw-medium">{book.author}</span>
                         </p>
 
-                        {/* 元数据卡片列表 */}
+                        {/* ISBN Number和Shelf Location */}
                         <div className="row g-3 mb-4">
                             <div className="col-sm-6">
                                 <div className="p-3 rounded-3" style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
@@ -127,7 +125,7 @@ const BookDetail = () => {
                             </div>
                         </div>
 
-                        {/* 库存与状态评估 */}
+                        {/* Inventory and Condition Assessment */}
                         <div className="card border-0 p-3 rounded-4 mb-4" style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
                             <div className="d-flex justify-content-between align-items-center">
                                 <div>
@@ -146,7 +144,7 @@ const BookDetail = () => {
                             </div>
                         </div>
 
-                        {/* 操作按钮组 / 管理员提示 */}
+                        {/* admin不能借书 */}
                         <div className="d-flex gap-3 align-items-center">
                             {isAdmin ? (
                                 <div className="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 rounded-pill fs-6">

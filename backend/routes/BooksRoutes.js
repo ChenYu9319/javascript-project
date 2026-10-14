@@ -4,12 +4,12 @@ const { verifyToken, isAdmin } = require("../middleware/auth");
 
 const route = express.Router();
 
-// 公开接口 (无需登录)
+// public rotes ( not need login )
 route.get("/", BooksController.getAllBooks);
-route.get("/categories", BooksController.getUniqueCategories); // 修正为复数 /categories
+route.get("/categories", BooksController.getUniqueCategories);
 route.get("/:id", BooksController.getBookById);
 
-// 只有管理员可以增删改图书 (受保护接口)
+// 只有管理员可以add, delete, edit books
 route.post("/", verifyToken, isAdmin, BooksController.addNewBook);
 route.put("/:id", verifyToken, isAdmin, BooksController.updateBookById);
 route.delete("/:id", verifyToken, isAdmin, BooksController.deleteBookById);

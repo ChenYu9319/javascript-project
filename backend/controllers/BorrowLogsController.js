@@ -14,16 +14,17 @@ exports.createNewBorrow = async (req, res) => {
             return res.status(404).json({ message: "User not found." });
         }
 
-        // 🚨 新增校验：禁止管理员借书
+        // 禁止admin借书
         if (user.role === 'admin') {
             return res.status(403).json({ message: "Administrators are not permitted to borrow books." });
         }
-
+        
+        // 这个book已经没有了or被借了
         if (!book || book.availableStock <= 0) {
             return res.status(400).json({ message: "The book does not exist or is out of stock." });
         }
 
-        // 实时统计该用户当前真正借阅中的书籍数量
+        // 实时统计books
         const activeBorrowsCount = await BorrowLog.countDocuments({ userId, status: "Borrowed" });
         if (activeBorrowsCount >= 5) {
             return res.status(400).json({ message: "The patron has reached the maximum borrowing limit (5 items)." });

@@ -10,7 +10,7 @@ const Footer = () => {
             }}
         >
             <div className="container">
-                <small>© {new Date().getFullYear()} LibHub Central Management System. All Rights Reserved.</small>
+                <small>© {new Date().getFullYear()} LibHub Central Management System. All Rights Reserved.</small> {/* getFullYear 是拿今年的 */}
             </div>
         </footer>
     );
