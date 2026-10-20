@@ -7,32 +7,38 @@ const AdminDashboard = () => {
         totalBooks: 0,
         borrowedBooks: 0,
         availableBooks: 0,
-        allBorrows: []
+        allBorrows: [],
+        allReservations: []
     });
     const [loading, setLoading] = useState(true);
 
+    // 分页相关的 State（每页 10 个）
+    const [borrowPage, setBorrowPage] = useState(1);
+    const [reservationPage, setReservationPage] = useState(1);
+    const itemsPerPage = 10;
+
     const fetchDashboardData = async () => {
         try {
-            const [booksRes, borrowsRes] = await Promise.all([
+            const [booksRes, borrowsRes, reservationsRes] = await Promise.all([
                 API.get('/books'),
-                API.get('/borrows')
+                API.get('/borrows'),
+                API.get('/reservations')
             ]);
 
             const books = booksRes.data || [];
             const borrows = borrowsRes.data || [];
+            const reservations = reservationsRes.data || [];
 
             const total = books.reduce((acc, book) => acc + (book.totalStock || 0), 0);
             const available = books.reduce((acc, book) => acc + (book.availableStock || 0), 0);
-            
-            // 计算当前真正活跃的借阅数（用于统计卡片）
             const activeBorrowsCount = borrows.filter(b => b.status === 'Borrowed').length;
 
             setStats({
                 totalBooks: total,
                 availableBooks: available,
                 borrowedBooks: activeBorrowsCount,
-                // 保存全量借阅/归还流水，供表格展示
-                allBorrows: borrows
+                allBorrows: borrows,
+                allReservations: reservations
             });
         } catch (err) {
             console.error('Failed to load dashboard statistics:', err);
@@ -48,6 +54,20 @@ const AdminDashboard = () => {
     const borrowRate = stats.totalBooks > 0 
         ? Math.round((stats.borrowedBooks / stats.totalBooks) * 100) 
         : 0;
+
+    // 1. 借阅日志分页切片计算
+    const totalBorrowPages = Math.ceil(stats.allBorrows.length / itemsPerPage) || 1;
+    const currentBorrows = stats.allBorrows.slice(
+        (borrowPage - 1) * itemsPerPage,
+        borrowPage * itemsPerPage
+    );
+
+    // 2. 预约日志分页切片计算
+    const totalReservationPages = Math.ceil(stats.allReservations.length / itemsPerPage) || 1;
+    const currentReservations = stats.allReservations.slice(
+        (reservationPage - 1) * itemsPerPage,
+        reservationPage * itemsPerPage
+    );
 
     if (loading) {
         return (
@@ -74,9 +94,9 @@ const AdminDashboard = () => {
                 </Link>
             </div>
 
-            {/* card 统计看板 */}
+            {/* 1. Card 统计看板 */}
             <div className="row g-3 mb-4">
-                {/* card 1: all books */}
+                {/* Total Stock */}
                 <div className="col-md-3">
                     <div className="card card-dark-glass rounded-4 p-3 h-100">
                         <div className="d-flex align-items-center justify-content-between">
@@ -91,7 +111,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* card 2: books available for borrowing */}
+                {/* Available Books */}
                 <div className="col-md-3">
                     <div className="card card-dark-glass rounded-4 p-3 h-100">
                         <div className="d-flex align-items-center justify-content-between">
@@ -106,7 +126,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* card 3: number of books currently on loan */}
+                {/* Active Borrows */}
                 <div className="col-md-3">
                     <div className="card card-dark-glass rounded-4 p-3 h-100">
                         <div className="d-flex align-items-center justify-content-between">
@@ -121,23 +141,23 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* card 4: utilization rate */}
+                {/* Active Reservations */}
                 <div className="col-md-3">
                     <div className="card card-dark-glass rounded-4 p-3 h-100">
                         <div className="d-flex align-items-center justify-content-between">
                             <div>
-                                <span className="text-white-50 small fw-medium d-block mb-1">Utilization Rate</span>
-                                <h3 className="fw-bold text-info mb-0">{borrowRate}%</h3>
+                                <span className="text-white-50 small fw-medium d-block mb-1">Pending Reservations</span>
+                                <h3 className="fw-bold text-info mb-0">{stats.allReservations.length}</h3>
                             </div>
                             <div className="rounded-circle bg-info-subtle text-info p-3 d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px' }}>
-                                <i className="fa-solid fa-percent fa-lg"></i>
+                                <i className="fa-solid fa-clock fa-lg"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* 2. Book Utilization Rate and Quick Access Toolbar */}
+            {/* 2. 图书利用率与快捷工具栏（已加入 View Member Directory 快捷入口） */}
             <div className="row g-4 mb-4">
                 <div className="col-md-8">
                     <div className="card card-dark-glass rounded-4 p-4 h-100">
@@ -172,6 +192,10 @@ const AdminDashboard = () => {
                             <Link to="/admin/inventory" className="btn btn-outline-light text-start rounded-3 p-2.5 border-opacity-25">
                                 <i className="fa-solid fa-square-plus me-2 text-info"></i>Add New Book Item
                             </Link>
+                            {/* 新增：查看会员列表快捷入口 */}
+                            <Link to="/admin/users" className="btn btn-outline-light text-start rounded-3 p-2.5 border-opacity-25">
+                                <i className="fa-solid fa-users me-2 text-info"></i>View Member Directory
+                            </Link>
                             <Link to="/search" className="btn btn-outline-light text-start rounded-3 p-2.5 border-opacity-25">
                                 <i className="fa-solid fa-magnifying-glass me-2 text-info"></i>Browse Public Catalog
                             </Link>
@@ -180,8 +204,8 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            {/* 3. All Borrow & Return Activity Table (展示借书与还书的全部历史流水) */}
-            <div className="card card-dark-glass rounded-4 overflow-hidden">
+            {/* 3. 借阅与还书历史流水表（带分页） */}
+            <div className="card card-dark-glass rounded-4 overflow-hidden mb-4">
                 <div className="card-header bg-transparent border-bottom border-white border-opacity-10 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
                     <h5 className="fw-bold text-white mb-0">
                         <i className="fa-solid fa-clock-rotate-left text-info me-2"></i>Borrow & Return Activity Logs
@@ -202,7 +226,7 @@ const AdminDashboard = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {stats.allBorrows.map(log => {
+                            {currentBorrows.map(log => {
                                 const isReturned = log.status === 'Returned';
                                 return (
                                     <tr key={log._id}>
@@ -244,6 +268,119 @@ const AdminDashboard = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* 借阅日志分页控制条 */}
+                {totalBorrowPages > 1 && (
+                    <div className="card-footer bg-transparent border-top border-white border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
+                        <span className="text-white-50 small">
+                            Page {borrowPage} of {totalBorrowPages}
+                        </span>
+                        <div className="btn-group">
+                            <button 
+                                className="btn btn-outline-light btn-sm px-3 border-opacity-25 rounded-start-pill"
+                                disabled={borrowPage === 1}
+                                onClick={() => setBorrowPage(prev => Math.max(prev - 1, 1))}
+                            >
+                                <i className="fa-solid fa-chevron-left me-1"></i> Prev
+                            </button>
+                            <button 
+                                className="btn btn-outline-light btn-sm px-3 border-opacity-25 rounded-end-pill"
+                                disabled={borrowPage === totalBorrowPages}
+                                onClick={() => setBorrowPage(prev => Math.min(prev + 1, totalBorrowPages))}
+                            >
+                                Next <i className="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* 4. 全馆图书预约只读列表（带分页） */}
+            <div className="card card-dark-glass rounded-4 overflow-hidden">
+                <div className="card-header bg-transparent border-bottom border-white border-opacity-10 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                    <h5 className="fw-bold text-white mb-0">
+                        <i className="fa-solid fa-list-check text-warning me-2"></i>Book Reservation Overview (Read-Only)
+                    </h5>
+                    <span className="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                        Total Reservations: {stats.allReservations.length}
+                    </span>
+                </div>
+                <div className="table-responsive">
+                    <table className="table table-dark-glass align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th className="ps-4">Book Title</th>
+                                <th>Reserved By</th>
+                                <th>Reservation Date</th>
+                                <th>Current Stock Status</th>
+                                <th className="text-end pe-4">Reservation Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {currentReservations.map(resv => {
+                                const bookTitle = resv.bookId?.title || 'Unknown Book';
+                                const memberName = resv.userId?.username || 'Member';
+                                const cardNo = resv.userId?.cardNo ? ` (${resv.userId.cardNo})` : '';
+                                const availStock = resv.bookId?.availableStock ?? 0;
+
+                                return (
+                                    <tr key={resv._id}>
+                                        <td className="ps-4 fw-medium text-white">{bookTitle}</td>
+                                        <td className="text-white-50">
+                                            <i className="fa-solid fa-user me-1 text-info opacity-75"></i>
+                                            {memberName}{cardNo}
+                                        </td>
+                                        <td className="text-white-50 small">
+                                            {resv.reservedAt ? new Date(resv.reservedAt).toLocaleDateString() : '-'}
+                                        </td>
+                                        <td>
+                                            <span className={`badge ${availStock > 0 ? 'bg-success bg-opacity-25 text-success' : 'bg-danger bg-opacity-25 text-danger'}`}>
+                                                {availStock > 0 ? `In Stock (${availStock})` : 'Out of Stock'}
+                                            </span>
+                                        </td>
+                                        <td className="text-end pe-4">
+                                            <span className="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1">
+                                                {resv.status || 'Active'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            {stats.allReservations.length === 0 && (
+                                <tr>
+                                    <td colSpan="5" className="text-center py-4 text-white-50">
+                                        No reservation records found.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* 预约日志分页控制条 */}
+                {totalReservationPages > 1 && (
+                    <div className="card-footer bg-transparent border-top border-white border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
+                        <span className="text-white-50 small">
+                            Page {reservationPage} of {totalReservationPages}
+                        </span>
+                        <div className="btn-group">
+                            <button 
+                                className="btn btn-outline-light btn-sm px-3 border-opacity-25 rounded-start-pill"
+                                disabled={reservationPage === 1}
+                                onClick={() => setReservationPage(prev => Math.max(prev - 1, 1))}
+                            >
+                                <i className="fa-solid fa-chevron-left me-1"></i> Prev
+                            </button>
+                            <button 
+                                className="btn btn-outline-light btn-sm px-3 border-opacity-25 rounded-end-pill"
+                                disabled={reservationPage === totalReservationPages}
+                                onClick={() => setReservationPage(prev => Math.min(prev + 1, totalReservationPages))}
+                            >
+                                Next <i className="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

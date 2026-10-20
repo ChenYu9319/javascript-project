@@ -3,6 +3,7 @@ import API from "../utils/api";
 
 const AdminInventory = () => {
     const [books, setBooks] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [formData, setFormData] = useState({
         title: "",
         author: "",
@@ -10,7 +11,6 @@ const AdminInventory = () => {
         category: "",
         shelfLocation: "",
         totalStock: 1,
-        availableStock: 1,
     });
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -29,32 +29,37 @@ const AdminInventory = () => {
         fetchBooks();
     }, []);
 
+    // 关键词搜索过滤逻辑（支持匹配 Title, Author, ISBN, Category）
+    const filteredBooks = books.filter((book) => {
+        const term = searchTerm.toLowerCase();
+        return (
+            (book.title && book.title.toLowerCase().includes(term)) ||
+            (book.author && book.author.toLowerCase().includes(term)) ||
+            (book.isbn && book.isbn.toLowerCase().includes(term)) ||
+            (book.category && book.category.toLowerCase().includes(term))
+        );
+    });
+
     // 普通文本输入框的处理（用于 Title, Author, ISBN 等）
     const handleAddChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // 纯按钮控制的库存步进函数
+    // 纯按钮控制的库存步进函数（仅控制 totalStock）
     const handleAddStep = (field, step, isEdit = false) => {
         if (isEdit) {
             setEditFormData((prev) => {
                 const currentVal = Number(prev[field]) || 0;
                 let newVal = currentVal + step;
-                if (newVal < (field === "availableStock" ? 0 : 1)) newVal = field === "availableStock" ? 0 : 1;
-                if (field === "totalStock" && newVal < Number(prev.availableStock)) {
-                    newVal = Number(prev.availableStock);
-                }
+                if (newVal < 1) newVal = 1;
                 return { ...prev, [field]: newVal };
             });
         } else {
             setFormData((prev) => {
                 const currentVal = Number(prev[field]) || 0;
                 let newVal = currentVal + step;
-                if (newVal < (field === "availableStock" ? 0 : 1)) newVal = field === "availableStock" ? 0 : 1;
-                if (field === "totalStock" && newVal < Number(prev.availableStock)) {
-                    newVal = Number(prev.availableStock);
-                }
+                if (newVal < 1) newVal = 1;
                 return { ...prev, [field]: newVal };
             });
         }
@@ -68,7 +73,13 @@ const AdminInventory = () => {
     const handleAddSubmit = async (e) => {
         e.preventDefault();
         try {
-            await API.post("/books", formData);
+            // 提交时，新书的 availableStock 默认和 totalStock 保持一致
+            const submitData = {
+                ...formData,
+                availableStock: formData.totalStock
+            };
+
+            await API.post("/books", submitData);
             alert("Book added successfully!");
             setFormData({
                 title: "",
@@ -77,7 +88,6 @@ const AdminInventory = () => {
                 category: "",
                 shelfLocation: "",
                 totalStock: 1,
-                availableStock: 1,
             });
             fetchBooks();
         } catch (err) {
@@ -92,11 +102,6 @@ const AdminInventory = () => {
 
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
-        
-        if (editFormData.availableStock > editFormData.totalStock) {
-            alert("Available stock cannot exceed total stock.");
-            return;
-        }
 
         try {
             await API.put(`/books/${editFormData._id}`, editFormData);
@@ -135,7 +140,7 @@ const AdminInventory = () => {
                 </button>
             </div>
 
-            {/* 图书折叠表单 Book-style folding leaflet */}
+            {/* 图书折叠表单（已移除 Available Stock） */}
             <div className="collapse mb-4" id="addBookCollapse">
                 <div className="card card-dark-glass card-body rounded-4 p-4">
                     <h5 className="fw-bold mb-3 text-info">
@@ -154,32 +159,22 @@ const AdminInventory = () => {
                             <label className="form-label small fw-medium text-white-50">ISBN</label>
                             <input type="text" name="isbn" className="form-control" value={formData.isbn} onChange={handleAddChange} required />
                         </div>
-                        <div className="col-md-3">
+                        <div className="col-md-4">
                             <label className="form-label small fw-medium text-white-50">Category</label>
                             <input type="text" name="category" className="form-control" value={formData.category} onChange={handleAddChange} required />
                         </div>
-                        <div className="col-md-3">
+                        <div className="col-md-4">
                             <label className="form-label small fw-medium text-white-50">Shelf Location</label>
                             <input type="text" name="shelfLocation" className="form-control" value={formData.shelfLocation} onChange={handleAddChange} required />
                         </div>
                         
-                        {/* Total Stock (设为 readOnly，用+/-来调整数量) */}
-                        <div className="col-md-3">
+                        {/* Total Stock */}
+                        <div className="col-md-4">
                             <label className="form-label small fw-medium text-white-50">Total Stock</label>
                             <div className="input-group">
                                 <button type="button" className="btn btn-outline-light border-opacity-25 px-2" onClick={() => handleAddStep("totalStock", -1, false)}>-</button>
                                 <input type="text" name="totalStock" className="form-control text-center bg-transparent text-white" value={formData.totalStock} readOnly />
                                 <button type="button" className="btn btn-outline-light border-opacity-25 px-2" onClick={() => handleAddStep("totalStock", 1, false)}>+</button>
-                            </div>
-                        </div>
-
-                        {/* Available Stock (设为 readOnly，用+/-来调整数量) */}
-                        <div className="col-md-3">
-                            <label className="form-label small fw-medium text-white-50">Available Stock</label>
-                            <div className="input-group">
-                                <button type="button" className="btn btn-outline-light border-opacity-25 px-2" onClick={() => handleAddStep("availableStock", -1, false)}>-</button>
-                                <input type="text" name="availableStock" className="form-control text-center bg-transparent text-white" value={formData.availableStock} readOnly />
-                                <button type="button" className="btn btn-outline-light border-opacity-25 px-2" onClick={() => handleAddStep("availableStock", 1, false)}>+</button>
                             </div>
                         </div>
 
@@ -189,6 +184,36 @@ const AdminInventory = () => {
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            {/* Search 搜索栏 */}
+            <div className="card card-dark-glass rounded-4 p-3 mb-4">
+                <div className="row g-3 align-items-center">
+                    <div className="col-md-12">
+                        <div className="input-group">
+                            <span className="input-group-text border-end-0 text-white-50 rounded-start-pill ps-3" style={{ background: "rgba(15, 23, 42, 0.4)", borderColor: "rgba(255, 255, 255, 0.15)" }}>
+                                <i className="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input 
+                                type="text" 
+                                className="form-control border-start-0 rounded-end-pill ps-2 text-white bg-transparent" 
+                                placeholder="Search inventory by title, author, ISBN or category..."
+                                value={searchTerm} 
+                                onChange={e => setSearchTerm(e.target.value)} 
+                            />
+                            {searchTerm && (
+                                <button 
+                                    type="button" 
+                                    onClick={() => setSearchTerm('')} 
+                                    className="btn btn-outline-light border-start-0 border-opacity-25 rounded-pill ms-2 text-white-50 px-3"
+                                    style={{ fontSize: '0.85rem' }}
+                                >
+                                    <i className="fa-solid fa-rotate-left me-1"></i> Reset
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -207,7 +232,7 @@ const AdminInventory = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {books.map((book) => (
+                            {filteredBooks.map((book) => (
                                 <tr key={book._id}>
                                     <td className="ps-4">
                                         <div className="fw-bold text-white">{book.title}</div>
@@ -244,11 +269,11 @@ const AdminInventory = () => {
                                     </td>
                                 </tr>
                             ))}
-                            {books.length === 0 && (
+                            {filteredBooks.length === 0 && (
                                 <tr>
                                     <td colSpan="6" className="text-center py-5 text-white-50">
                                         <i className="fa-solid fa-box-open fa-2x mb-2 d-block opacity-50"></i>
-                                        No inventory books found.
+                                        No inventory books found matching your search.
                                     </td>
                                 </tr>
                             )}
@@ -257,7 +282,7 @@ const AdminInventory = () => {
                 </div>
             </div>
 
-            {/* (Edit Modal) */}
+            {/* Edit Modal（已移除 Available Stock） */}
             {isEditModalOpen && editFormData && (
                 <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(6px)" }}>
                     <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -288,28 +313,18 @@ const AdminInventory = () => {
                                             <label className="form-label small fw-medium text-white-50">Category</label>
                                             <input type="text" name="category" className="form-control" value={editFormData.category} onChange={handleEditChange} required />
                                         </div>
-                                        <div className="col-md-4">
+                                        <div className="col-md-6">
                                             <label className="form-label small fw-medium text-white-50">Shelf Location</label>
                                             <input type="text" name="shelfLocation" className="form-control" value={editFormData.shelfLocation} onChange={handleEditChange} required />
                                         </div>
                                         
-                                        {/* Total Stock (设为 readOnly和用+/-来调整数量) */}
-                                        <div className="col-md-4">
+                                        {/* Total Stock */}
+                                        <div className="col-md-6">
                                             <label className="form-label small fw-medium text-white-50">Total Stock</label>
                                             <div className="input-group">
                                                 <button type="button" className="btn btn-outline-light border-opacity-25 px-2" onClick={() => handleAddStep("totalStock", -1, true)}>-</button>
                                                 <input type="text" name="totalStock" className="form-control text-center bg-transparent text-white" value={editFormData.totalStock} readOnly />
                                                 <button type="button" className="btn btn-outline-light border-opacity-25 px-2" onClick={() => handleAddStep("totalStock", 1, true)}>+</button>
-                                            </div>
-                                        </div>
-
-                                        {/* Available Stock (设为 readOnly和用+/-来调整数量) */}
-                                        <div className="col-md-4">
-                                            <label className="form-label small fw-medium text-white-50">Available Stock</label>
-                                            <div className="input-group">
-                                                <button type="button" className="btn btn-outline-light border-opacity-25 px-2" onClick={() => handleAddStep("availableStock", -1, true)}>-</button>
-                                                <input type="text" name="availableStock" className="form-control text-center bg-transparent text-white" value={editFormData.availableStock} readOnly />
-                                                <button type="button" className="btn btn-outline-light border-opacity-25 px-2" onClick={() => handleAddStep("availableStock", 1, true)}>+</button>
                                             </div>
                                         </div>
                                     </div>

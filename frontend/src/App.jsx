@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminInventory from './pages/AdminInventory';
+import AdminUsers from './pages/AdminUsers'; // 1. 引入管理员用户列表页
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -40,6 +41,13 @@ function App() {
             <Route path="/admin/inventory" element={
               <ProtectedRoute allowedRole="admin">
                 <AdminInventory />
+              </ProtectedRoute>
+            } />
+            
+            {/* 2. 移到 Routes 内部，并加上管理员权限保护 */}
+            <Route path="/admin/users" element={
+              <ProtectedRoute allowedRole="admin">
+                <AdminUsers />
               </ProtectedRoute>
             } />
           </Routes>

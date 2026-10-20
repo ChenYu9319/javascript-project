@@ -3,47 +3,57 @@ import API from '../utils/api';
 import BookCard from '../components/BookCard';
 
 const BookSearch = () => {
-    const [books, setBooks] = useState([]);
+    const [allBooks, setAllBooks] = useState([]);       // 存储从后端获取的原始完整书籍列表
     const [categories, setCategories] = useState([]);
     const [keyword, setKeyword] = useState('');
     const [category, setCategory] = useState('');
     const [availableOnly, setAvailableOnly] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    const fetchBooks = async () => {
-        setLoading(true);
-        try {
-            const res = await API.get('/books', {
-                params: { keyword, category, availableOnly }
-            });
-            setBooks(res.data);
-        } catch (err) {
-            console.error('Failed to fetch books:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // 1. 页面加载时一次性获取所有书籍和分类
     useEffect(() => {
-        API.get('/books/categories')
-            .then(res => setCategories(res.data))
-            .catch(() => {});
-            
-        fetchBooks();
+        const fetchInitialData = async () => {
+            setLoading(true);
+            try {
+                const [booksRes, catRes] = await Promise.all([
+                    API.get('/books'),
+                    API.get('/books/categories')
+                ]);
+                setAllBooks(booksRes.data || []);
+                setCategories(catRes.data || []);
+            } catch (err) {
+                console.error('Failed to fetch catalog data:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInitialData();
     }, []);
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        fetchBooks();
-    };
+    // 2. 前端实时过滤逻辑（每打一个字、切分类或点开关，瞬间响应）
+    const filteredBooks = allBooks.filter(book => {
+        const term = keyword.toLowerCase();
+        
+        // 匹配书名、作者或 ISBN
+        const matchesKeyword = 
+            (book.title && book.title.toLowerCase().includes(term)) ||
+            (book.author && book.author.toLowerCase().includes(term)) ||
+            (book.isbn && book.isbn.toLowerCase().includes(term));
+
+        // 匹配分类
+        const matchesCategory = category === '' || book.category === category;
+
+        // 匹配可用库存
+        const matchesStock = !availableOnly || (book.availableStock > 0);
+
+        return matchesKeyword && matchesCategory && matchesStock;
+    });
 
     const handleReset = () => {
         setKeyword('');
         setCategory('');
         setAvailableOnly(false);
-        setTimeout(() => {
-            API.get('/books').then(res => setBooks(res.data)).catch(() => {});
-        }, 0);
     };
 
     return (
@@ -58,14 +68,14 @@ const BookSearch = () => {
                     <p className="text-white-50 small mb-0">Explore our digital collection, search by title, author or category.</p>
                 </div>
                 <span className="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10 rounded-pill px-3 py-2">
-                    <i className="fa-solid fa-book-open me-1 text-info"></i> {books.length} Books Found
+                    <i className="fa-solid fa-book-open me-1 text-info"></i> {filteredBooks.length} Books Found
                 </span>
             </div>
 
-            {/* 高质感搜索与筛选栏 */}
+            {/* 实时搜索与筛选栏（无需点击 Search 按钮，输入即生效） */}
             <div className="card card-dark-glass rounded-4 p-3 mb-4">
-                <form onSubmit={handleSearch} className="row g-3 align-items-center">
-                    {/* 关键词搜索框 */}
+                <div className="row g-3 align-items-center">
+                    {/* 关键词实时搜索框 */}
                     <div className="col-lg-4 col-md-6">
                         <div className="input-group">
                             <span className="input-group-text border-end-0 text-white-50 rounded-start-pill ps-3" style={{ background: "rgba(15, 23, 42, 0.4)", borderColor: "rgba(255, 255, 255, 0.15)" }}>
@@ -74,7 +84,7 @@ const BookSearch = () => {
                             <input 
                                 type="text" 
                                 className="form-control border-start-0 rounded-end-pill ps-2 text-white bg-transparent" 
-                                placeholder="Search title or author..."
+                                placeholder="Search title, author or ISBN..."
                                 value={keyword} 
                                 onChange={e => setKeyword(e.target.value)} 
                             />
@@ -98,7 +108,7 @@ const BookSearch = () => {
                         </div>
                     </div>
 
-                    {/* 可用库存button */}
+                    {/* 可用库存开关 */}
                     <div className="col-lg-3 col-md-6 d-flex align-items-center">
                         <div className="form-check form-switch ms-2">
                             <input 
@@ -114,38 +124,34 @@ const BookSearch = () => {
                         </div>
                     </div>
 
-                    {/* 搜索与重置按钮 */}
-                    <div className="col-lg-2 col-md-6 d-flex gap-2">
-                        <button type="submit" className="btn btn-primary-gradient rounded-pill w-100 fw-medium shadow-sm">
-                            Search
-                        </button>
+                    {/* 重置按钮 */}
+                    <div className="col-lg-2 col-md-6">
                         {(keyword || category || availableOnly) && (
                             <button 
                                 type="button" 
                                 onClick={handleReset} 
-                                className="btn btn-outline-light rounded-circle p-2 text-white-50 border-opacity-25"
-                                style={{ width: '38px', height: '38px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                                title="Reset Filters"
+                                className="btn btn-outline-light rounded-pill w-100 border-opacity-25 text-white-50 py-2"
+                                style={{ fontSize: '0.85rem' }}
                             >
-                                <i className="fa-solid fa-rotate-left"></i>
+                                <i className="fa-solid fa-rotate-left me-1"></i> Reset Filters
                             </button>
                         )}
                     </div>
-                </form>
+                </div>
             </div>
 
             {/* 加载状态 */}
             {loading && (
                 <div className="text-center py-5">
                     <div className="spinner-border text-info" role="status"></div>
-                    <p className="mt-2 text-white-50">Searching catalog...</p>
+                    <p className="mt-2 text-white-50">Loading catalog...</p>
                 </div>
             )}
 
             {/* 图书网格展示 */}
             {!loading && (
                 <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    {books.map(book => (
+                    {filteredBooks.map(book => (
                         <div className="col" key={book._id}>
                             <BookCard book={book} />
                         </div>
@@ -154,7 +160,7 @@ const BookSearch = () => {
             )}
 
             {/* 空搜索结果提示 */}
-            {!loading && books.length === 0 && (
+            {!loading && filteredBooks.length === 0 && (
                 <div className="card card-dark-glass rounded-4 text-center py-5 my-4">
                     <div className="card-body">
                         <div className="rounded-circle bg-white bg-opacity-10 d-inline-flex p-4 mb-3 text-info">

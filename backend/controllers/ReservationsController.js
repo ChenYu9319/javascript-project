@@ -2,7 +2,10 @@ const Reservation = require("../models/Reservations");
 const Book = require("../models/Books");
 
 exports.createReservation = async (req, res) => {
-    const { userId, bookId } = req.body;
+    // 修复：从经过验证的 req.user 中安全提取用户 ID，而不是从 req.body 中获取
+    const userId = req.user?.id || req.user?._id;
+    const { bookId } = req.body;
+
     try {
         const book = await Book.findById(bookId);
         if (!book) {
@@ -27,7 +30,7 @@ exports.createReservation = async (req, res) => {
         await newReservation.save();
         res.json(newReservation);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: err.message || "Server Error" });
     }
 };
 
@@ -42,7 +45,7 @@ exports.getAllReservations = async (req, res) => {
             .populate("bookId", "title isbn availableStock");
         res.json(reservations);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: err.message || "Server Error" });
     }
 };
 
@@ -55,7 +58,7 @@ exports.updateReservationStatus = async (req, res) => {
         );
         res.json(updatedReservation);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: err.message || "Server Error" });
     }
 };
 
@@ -64,6 +67,6 @@ exports.deleteReservationById = async (req, res) => {
         await Reservation.findByIdAndDelete(req.params.id);
         res.sendStatus(204);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: err.message || "Server Error" });
     }
 };
