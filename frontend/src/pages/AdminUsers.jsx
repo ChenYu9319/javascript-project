@@ -8,6 +8,10 @@ const AdminUsers = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
+    // 编辑模态框相关 State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editFormData, setEditFormData] = useState(null);
+
     const fetchMembers = async () => {
         setLoading(true);
         try {
@@ -28,7 +32,7 @@ const AdminUsers = () => {
         fetchMembers();
     }, []);
 
-    // 搜索过滤逻辑（支持匹配用户名、邮箱、卡号）
+    // 关键词搜索过滤逻辑（支持匹配用户名、邮箱、卡号）
     const filteredUsers = users.filter(user => {
         const term = searchTerm.toLowerCase();
         return (
@@ -43,7 +47,45 @@ const AdminUsers = () => {
         setCurrentPage(1);
     }, [searchTerm]);
 
-    // 分页计算（基于过滤后的用户列表）
+    // 打开编辑模态框
+    const handleOpenEditModal = (member) => {
+        setEditFormData({ ...member });
+        setIsEditModalOpen(true);
+    };
+
+    // 处理编辑表单输入变化
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    // 提交更新用户
+    const handleUpdateSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await API.put(`/auth/users/${editFormData._id}`, editFormData);
+            alert('Member updated successfully!');
+            setIsEditModalOpen(false);
+            setEditFormData(null);
+            fetchMembers();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to update member.');
+        }
+    };
+
+    // 删除用户
+    const handleDelete = async (id, username) => {
+        if (!window.confirm(`Are you sure you want to delete member "${username}"?`)) return;
+        try {
+            await API.delete(`/auth/users/${id}`);
+            alert('Member deleted successfully!');
+            fetchMembers();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to delete member.');
+        }
+    };
+
+    // 分页计算
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
     const currentUsers = filteredUsers.slice(
         (currentPage - 1) * itemsPerPage,
@@ -75,7 +117,7 @@ const AdminUsers = () => {
                 </span>
             </div>
 
-            {/* 搜索过滤栏 */}
+            {/* 纯 Search 搜索栏 */}
             <div className="card card-dark-glass rounded-4 p-3 mb-4">
                 <div className="row g-3 align-items-center">
                     <div className="col-md-12">
@@ -114,7 +156,8 @@ const AdminUsers = () => {
                                 <th className="ps-4">Username</th>
                                 <th>Email Address</th>
                                 <th>Library Card No.</th>
-                                <th className="text-end pe-4">Role Status</th>
+                                <th>Role Status</th>
+                                <th className="text-end pe-4">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -134,16 +177,34 @@ const AdminUsers = () => {
                                             {member.cardNo || 'N/A'}
                                         </span>
                                     </td>
-                                    <td className="text-end pe-4">
+                                    <td>
                                         <span className="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25 rounded-pill px-3 py-1">
                                             Member
                                         </span>
+                                    </td>
+                                    <td className="text-end pe-4">
+                                        <button 
+                                            onClick={() => handleOpenEditModal(member)} 
+                                            className="btn btn-outline-info btn-sm rounded-circle p-2 me-2 border-opacity-25"
+                                            style={{ width: '36px', height: '36px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                                            title="Edit Member"
+                                        >
+                                            <i className="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                        <button 
+                                            onClick={() => handleDelete(member._id, member.username)} 
+                                            className="btn btn-outline-danger btn-sm rounded-circle p-2 border-opacity-25"
+                                            style={{ width: '36px', height: '36px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                                            title="Delete Member"
+                                        >
+                                            <i className="fa-solid fa-trash"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
                             {filteredUsers.length === 0 && (
                                 <tr>
-                                    <td colSpan="4" className="text-center py-5 text-white-50">
+                                    <td colSpan="5" className="text-center py-5 text-white-50">
                                         <i className="fa-solid fa-user-slash fa-2x mb-2 d-block opacity-50"></i>
                                         No registered members found matching your search.
                                     </td>
@@ -178,6 +239,49 @@ const AdminUsers = () => {
                     </div>
                 )}
             </div>
+
+            {/* 编辑会员弹窗 (Edit Modal) */}
+            {isEditModalOpen && editFormData && (
+                <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(6px)" }}>
+                    <div className="modal-dialog modal-dialog-centered modal-lg">
+                        <div className="modal-content card-dark-glass rounded-4 border-0 shadow-lg">
+                            <div className="modal-header border-bottom border-white border-opacity-10 pb-3">
+                                <h5 className="modal-title fw-bold text-white">
+                                    <i className="fa-solid fa-pen-to-square text-info me-2"></i>
+                                    Edit Member Details
+                                </h5>
+                                <button type="button" className="btn-close btn-close-white" onClick={() => setIsEditModalOpen(false)}></button>
+                            </div>
+                            <form onSubmit={handleUpdateSubmit}>
+                                <div className="modal-body py-4">
+                                    <div className="row g-3">
+                                        <div className="col-md-6">
+                                            <label className="form-label small fw-medium text-white-50">Username</label>
+                                            <input type="text" name="username" className="form-control" value={editFormData.username} onChange={handleEditChange} required />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label className="form-label small fw-medium text-white-50">Email Address</label>
+                                            <input type="email" name="email" className="form-control" value={editFormData.email} onChange={handleEditChange} required />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <label className="form-label small fw-medium text-white-50">Library Card No.</label>
+                                            <input type="text" name="cardNo" className="form-control" value={editFormData.cardNo || ''} onChange={handleEditChange} />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="modal-footer border-top border-white border-opacity-10 pt-3">
+                                    <button type="button" className="btn btn-outline-light rounded-pill px-4 border-opacity-25" onClick={() => setIsEditModalOpen(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn btn-primary-gradient rounded-pill px-4">
+                                        <i className="fa-solid fa-floppy-disk me-1"></i> Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
