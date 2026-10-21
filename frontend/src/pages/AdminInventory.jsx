@@ -140,7 +140,7 @@ const AdminInventory = () => {
                 </button>
             </div>
 
-            {/* 图书折叠表单（已移除 Available Stock） */}
+            {/* 图书折叠表单 */}
             <div className="collapse mb-4" id="addBookCollapse">
                 <div className="card card-dark-glass card-body rounded-4 p-4">
                     <h5 className="fw-bold mb-3 text-info">
@@ -282,7 +282,7 @@ const AdminInventory = () => {
                 </div>
             </div>
 
-            {/* Edit Modal（已移除 Available Stock） */}
+            {/* Edit Modal */}
             {isEditModalOpen && editFormData && (
                 <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(6px)" }}>
                     <div className="modal-dialog modal-dialog-centered modal-lg">

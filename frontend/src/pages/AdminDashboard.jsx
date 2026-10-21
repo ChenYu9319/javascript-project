@@ -192,7 +192,7 @@ const AdminDashboard = () => {
                             <Link to="/admin/inventory" className="btn btn-outline-light text-start rounded-3 p-2.5 border-opacity-25">
                                 <i className="fa-solid fa-square-plus me-2 text-info"></i>Add New Book Item
                             </Link>
-                            {/* 新增：查看会员列表快捷入口 */}
+                            {/* 查看会员列表快捷入口 */}
                             <Link to="/admin/users" className="btn btn-outline-light text-start rounded-3 p-2.5 border-opacity-25">
                                 <i className="fa-solid fa-users me-2 text-info"></i>View Member Directory
                             </Link>
